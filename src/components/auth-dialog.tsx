@@ -26,6 +26,7 @@ export function AuthDialog({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [verificationSent, setVerificationSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +40,11 @@ export function AuthDialog({
           password,
         });
         if (error) throw new Error(error.message);
+        onOpenChange(false);
+        // Reset form
+        setName("");
+        setEmail("");
+        setPassword("");
       } else {
         const { error } = await signUp.email({
           email,
@@ -46,18 +52,47 @@ export function AuthDialog({
           name,
         });
         if (error) throw new Error(error.message);
+        // On successful signup, show verification message
+        setVerificationSent(true);
       }
-      onOpenChange(false);
-      // Reset form
-      setName("");
-      setEmail("");
-      setPassword("");
     } catch (err: any) {
       setError(err.message || "Failed to authenticate");
     } finally {
       setLoading(false);
     }
   };
+
+  const handleClose = () => {
+    onOpenChange(false);
+    setVerificationSent(false);
+    setName("");
+    setEmail("");
+    setPassword("");
+    setIsLogin(true); // reset to login for next time
+  };
+
+  if (verificationSent) {
+    return (
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Check your email</DialogTitle>
+          </DialogHeader>
+          <div className="py-6 text-center space-y-4">
+            <p className="text-muted-foreground">
+              We've sent a verification link to <strong>{email}</strong>.
+            </p>
+            <p className="text-sm">
+              Please check your inbox and click the link to verify your account, then you can log in.
+            </p>
+            <Button className="w-full mt-4" onClick={handleClose}>
+              Got it
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
