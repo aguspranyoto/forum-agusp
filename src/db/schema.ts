@@ -106,12 +106,14 @@ export const accountRelations = relations(account, ({ one }) => ({
   }),
 }));
 
-export const posts = sqliteTable('posts', {
-  id: text('id').primaryKey(),
-  title: text('title').notNull(),
-  content: text('content').notNull(),
-  authorId: text('author_id').notNull().references(() => user.id),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+export const posts = sqliteTable("posts", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => user.id),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
 export const postsRelations = relations(posts, ({ one }) => ({
@@ -121,12 +123,13 @@ export const postsRelations = relations(posts, ({ one }) => ({
   }),
 }));
 
-
-export const images = sqliteTable('images', {
-  id: text('id').primaryKey(),
-  url: text('url').notNull(),
-  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+export const images = sqliteTable("images", {
+  id: text("id").primaryKey(),
+  url: text("url").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
 export const imagesRelations = relations(images, ({ one }) => ({
@@ -136,11 +139,15 @@ export const imagesRelations = relations(images, ({ one }) => ({
   }),
 }));
 
-export const likes = sqliteTable('likes', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  postId: text('post_id').notNull().references(() => posts.id, { onDelete: 'cascade' }),
-  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+export const likes = sqliteTable("likes", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  postId: text("post_id")
+    .notNull()
+    .references(() => posts.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
 export const likesRelations = relations(likes, ({ one }) => ({
@@ -154,3 +161,77 @@ export const likesRelations = relations(likes, ({ one }) => ({
   }),
 }));
 
+export const comments = sqliteTable("comments", {
+  id: text("id").primaryKey(),
+  content: text("content").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  postId: text("post_id")
+    .notNull()
+    .references(() => posts.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const commentsRelations = relations(comments, ({ one }) => ({
+  user: one(user, {
+    fields: [comments.userId],
+    references: [user.id],
+  }),
+  post: one(posts, {
+    fields: [comments.postId],
+    references: [posts.id],
+  }),
+}));
+
+export const notifications = sqliteTable("notifications", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }), // Receiver
+  actorId: text("actor_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }), // Who did it
+  type: text("type").notNull(), // 'like' or 'comment'
+  postId: text("post_id").references(() => posts.id, { onDelete: "cascade" }),
+  isRead: integer("is_read", { mode: "boolean" }).default(false).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(user, {
+    fields: [notifications.userId],
+    references: [user.id],
+  }),
+  actor: one(user, {
+    fields: [notifications.actorId],
+    references: [user.id],
+  }),
+  post: one(posts, {
+    fields: [notifications.postId],
+    references: [posts.id],
+  }),
+}));
+
+export const messages = sqliteTable("messages", {
+  id: text("id").primaryKey(),
+  content: text("content").notNull(),
+  senderId: text("sender_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  receiverId: text("receiver_id").references(() => user.id, {
+    onDelete: "cascade",
+  }), // Optional: if null, it's a global chat
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  sender: one(user, {
+    fields: [messages.senderId],
+    references: [user.id],
+  }),
+  receiver: one(user, {
+    fields: [messages.receiverId],
+    references: [user.id],
+  }),
+}));

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers";
 import { Navbar } from "@/components/navbar";
+import { ChatWidget } from "@/components/chat-widget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
         <Providers>
           <Navbar />
           {children}
+          <ChatWidget />
           <footer className="py-3 shadow-sm border-t" role="footer">
             <div className="max-w-5xl mx-auto justify-center flex items-center  gap-1 text-center text-sm">
               &copy; {new Date().getFullYear()} Forum by

@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { likes } from "@/db/schema";
+import { likes, notifications, posts } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -52,6 +52,24 @@ export async function POST(req: Request, context: any) {
       postId: String(postId),
       createdAt: new Date(),
     });
+
+    // Send notification
+    const postRecord = await db
+      .select()
+      .from(posts)
+      .where(eq(posts.id, String(postId)))
+      .limit(1);
+    if (postRecord.length > 0 && postRecord[0].authorId !== String(userId)) {
+      await db.insert(notifications).values({
+        id: crypto.randomUUID(),
+        userId: postRecord[0].authorId,
+        actorId: String(userId),
+        type: "like",
+        postId: String(postId),
+        createdAt: new Date(),
+      });
+    }
+
     const countRows = await db
       .select()
       .from(likes)
