@@ -106,7 +106,7 @@ export default async function ProfilePage({
             </div>
           </div>
         </div>
-        <div>
+        <div className="pointer-events-none">
           <SendMessageButton userId={user.id} userName={user.name} />
         </div>
       </div>

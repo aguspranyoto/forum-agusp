@@ -180,7 +180,7 @@ export function Navbar() {
                     <ProfileMenuContent username={username} />
                   </PopoverContent>
                 </Popover>
-                <Button variant="ghost" size="sm" onClick={() => signOut()}>
+                <Button variant="outline" size="sm" onClick={() => signOut()}>
                   Sign Out
                 </Button>
               </div>

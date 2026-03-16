@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers";
 import { Navbar } from "@/components/navbar";
-import { ChatWidget } from "@/components/chat-widget";
+// import { ChatWidget } from "@/components/chat-widget";
 import { GlobalUsernameCheck } from "@/components/global-username-check";
 
 const geistSans = Geist({
@@ -35,7 +35,7 @@ export default function RootLayout({
           <GlobalUsernameCheck />
           <Navbar />
           {children}
-          <ChatWidget />
+          {/* <ChatWidget /> */}
           <footer className="py-3 shadow-sm border-t" role="footer">
             <div className="max-w-5xl mx-auto justify-center flex items-center  gap-1 text-center text-sm">
               &copy; {new Date().getFullYear()} Forum by

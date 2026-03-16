@@ -18,7 +18,7 @@ export default function SendMessageButton({
   };
 
   return (
-    <Button size="sm" variant="ghost" onClick={handleOpen}>
+    <Button size="sm" variant="default" onClick={handleOpen}>
       Send a message
     </Button>
   );
