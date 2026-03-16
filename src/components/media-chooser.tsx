@@ -30,6 +30,7 @@ export function MediaChooser({
 }: MediaChooserProps) {
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
+  const [activeTab, setActiveTab] = useState("library");
 
   const { data: images, isLoading } = useQuery({
     queryKey: ["user-images"],
@@ -45,9 +46,15 @@ export function MediaChooser({
       formData.append("file", uploadFile);
       return await uploadImage(formData);
     },
-    onSuccess: () => {
+    onSuccess: (newImage) => {
       queryClient.invalidateQueries({ queryKey: ["user-images"] });
       setFile(null);
+      // Automatically select the newly uploaded image
+      if (newImage?.url) {
+         onSelect(newImage.url);
+      } else {
+         setActiveTab("library");
+      }
     },
   });
 
@@ -68,7 +75,7 @@ export function MediaChooser({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="library" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="library">My Images</TabsTrigger>
             <TabsTrigger value="upload">Upload New</TabsTrigger>

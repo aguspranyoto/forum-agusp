@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Next.js Forum",
+  title: "Forum Agusp",
   description: "A modern forum application",
 };
 
@@ -32,6 +32,19 @@ export default function RootLayout({
         <Providers>
           <Navbar />
           {children}
+          <footer className="py-3 shadow-sm border-t" role="footer">
+            <div className="max-w-5xl mx-auto justify-center flex items-center  gap-1 text-center text-sm">
+              &copy; {new Date().getFullYear()} Forum by
+              <a
+                className="text-blue-600"
+                href="https://agusp.com"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Agusp
+              </a>
+            </div>
+          </footer>
         </Providers>
       </body>
     </html>
