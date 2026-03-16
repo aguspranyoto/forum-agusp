@@ -48,7 +48,7 @@ export const auth = betterAuth({
             body: JSON.stringify({
               from: "Support Forum Agusp <support@agusp.com>",
               to: user.email,
-              subject: "Verify your email for Next.js Forum",
+              subject: "Verify your email for Forum Agusp",
               html: htmlContent,
             }),
           });

@@ -23,10 +23,10 @@ export const EmailTemplate: React.FC<Readonly<VerificationEmailProps>> = ({
   return (
     <Html>
       <Head />
-      <Preview>Verify your email to join Next.js Forum</Preview>
+      <Preview>Verify your email to join Forum Agusp</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Text style={heading}>Welcome to Next.js Forum, {userName}!</Text>
+          <Text style={heading}>Welcome to Forum Agusp, {userName}!</Text>
           <Text style={paragraph}>
             We&apos;re excited to have you on board. Please verify your email
             address by clicking the button below so you can start participating
@@ -43,7 +43,7 @@ export const EmailTemplate: React.FC<Readonly<VerificationEmailProps>> = ({
           </Text>
           <Hr style={hr} />
           <Text style={footer}>
-            Next.js Forum securely built with BetterAuth & Next.js 16
+            Forum Agusp securely built with BetterAuth & Next.js 16
           </Text>
         </Container>
       </Body>
