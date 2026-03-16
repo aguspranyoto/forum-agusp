@@ -1,18 +1,29 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, type ChangeEvent } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+  CardDescription,
+} from "@/components/ui/card";
 import { useSession } from "@/lib/auth-client";
 import { AlertTriangleIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { LoaderCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 function Profile() {
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
 
-  const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [image, setImage] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -22,15 +33,41 @@ function Profile() {
   const [error, setError] = useState<string | null>(null);
   const [isUsername, setIsUsername] = useState<boolean | null>(null);
 
+  const schema = z.object({
+    username: z
+      .string()
+      .min(1, "Username is required")
+      .regex(/^[a-z0-9_]+$/, "Letters, numbers and underscores only"),
+    name: z.string().optional(),
+  });
+
+  type FormValues = z.infer<typeof schema>;
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { username: "", name: "" },
+  });
+
+  const watchName = watch("name");
+
   useEffect(() => {
     if (session?.user) {
       // Fetch full profile info to get username
       fetch("/api/me")
         .then((res) => res.json())
         .then((data) => {
-          if (data.name) setName(data.name);
+          if (data.name) setValue("name", data.name);
           if (data.image) setImage(data.image);
-          if (data.username) setUsername(data.username);
+          if (data.username) {
+            setUsername(data.username);
+            setValue("username", data.username);
+          }
           setIsUsername(!!data.username);
         })
         .catch(console.error);
@@ -46,8 +83,7 @@ function Profile() {
     setPreviewUrl(null);
   }, [file]);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function onSubmit(values: FormValues) {
     setSaving(true);
     let imageToSave = image;
     try {
@@ -83,11 +119,6 @@ function Profile() {
       // persist `name`, `username`, and `image` in your user database
       try {
         setError(null);
-        if (!username || username.trim().length === 0) {
-          setError("Username is required");
-          setSaving(false);
-          return;
-        }
 
         const userId = session?.user?.id || session?.user?.email || "";
         if (userId) {
@@ -96,8 +127,8 @@ function Profile() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               userId,
-              name,
-              username,
+              name: values.name || watchName || "",
+              username: values.username,
               image: imageToSave,
             }),
           });
@@ -106,7 +137,7 @@ function Profile() {
             throw new Error(data.error || "Update failed");
           }
           // Force a hard refresh to re-evaluate the layout's server-side block
-          window.location.href = `/profile/${username}`;
+          window.location.href = `/profile/${values.username}`;
         }
       } catch (err: any) {
         console.error("Failed to persist profile changes", err);
@@ -120,104 +151,140 @@ function Profile() {
   return (
     <div className="flex flex-col lg:flex-row gap-8 min-h-screen bg-background max-w-5xl mx-auto px-4 py-8">
       <main className="grow min-w-0">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
-          <h1 className="text-2xl font-semibold">Edit Profile</h1>
-        </div>
-
-        {isUsername === false && (
-          <Alert className="mb-4 border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50">
-            <AlertTriangleIcon />
-            <AlertTitle>Create a username</AlertTitle>
-            <AlertDescription>
-              Please fill out your new username and click "Save" to update your
-              profile. Your new username will be visible to others and used in
-              your profile URL.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {error && <div className="text-red-500 mb-4">{error}</div>}
-
-        <form onSubmit={onSubmit} className="space-y-6 max-w-xl">
-          <div className="flex flex-col gap-4">
-            <div className="flex-1">
-              <Label className="mb-1">Username</Label>
-              <Input
-                value={username}
-                onChange={(e) =>
-                  setUsername(
-                    e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""),
-                  )
-                }
-                placeholder="Unique username"
-                required
-                disabled={isUsername === true}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Letters, numbers, and underscores only.
-              </p>
-            </div>
-
-            <div className="flex-1">
-              <Label className="mb-1">Display Name</Label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label className="mb-2">Profile Image</Label>
-            <Avatar className="h-32 w-32">
-              {previewUrl || image ? (
-                <AvatarImage src={previewUrl ?? image} />
-              ) : (
-                <AvatarFallback>
-                  {name?.charAt(0)?.toUpperCase() || "U"}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <div className="mt-2">
-              <input
-                ref={fileInputRef}
-                id="profile-file"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              />
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Choose file
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {file?.name ?? "No file selected"}
-                </span>
-                {previewUrl && (
-                  <img
-                    src={previewUrl}
-                    alt="preview"
-                    className="h-12 w-12 rounded-md object-cover ml-2"
-                  />
-                )}
+        <Card className="max-w-3xl">
+          <CardHeader>
+            <div className="flex items-center justify-between w-full">
+              <div>
+                <CardTitle>Edit Profile</CardTitle>
+                <CardDescription className="text-sm">
+                  Update your profile details — username, display name, and
+                  profile image.
+                </CardDescription>
               </div>
             </div>
-          </div>
+          </CardHeader>
+          <CardContent>
+            {isUsername === false && (
+              <Alert className="mb-4 border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50">
+                <AlertTriangleIcon />
+                <AlertTitle>Create a username</AlertTitle>
+                <AlertDescription>
+                  Please fill out your new username and click "Save" to update
+                  your profile. Your new username will be visible to others and
+                  used in your profile URL.
+                </AlertDescription>
+              </Alert>
+            )}
 
-          <div className="">
-            <Button type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Save"}
-            </Button>
-          </div>
-        </form>
+            {error && <div className="text-red-500 mb-4">{error}</div>}
+
+            {isPending ? (
+              <div className="w-full h-24 flex justify-center items-center">
+                <LoaderCircle className="text-slate-600 w-12 h-12 animate-spin" />
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div>
+                    <Label className="mb-2">Username</Label>
+                    <Input
+                      {...register("username", {
+                        onChange: (e: ChangeEvent<HTMLInputElement>) =>
+                          setUsername(
+                            e.target.value
+                              .toLowerCase()
+                              .replace(/[^a-z0-9_]/g, ""),
+                          ),
+                      })}
+                      placeholder="Unique username"
+                      required
+                      disabled={isUsername === true}
+                    />
+                    {errors.username ? (
+                      <p className="text-sm text-destructive mt-1">
+                        {(errors.username.message as string) ||
+                          "Invalid username"}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Letters, numbers, and underscores only.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label className="mb-2">Display Name</Label>
+                    <Input {...register("name")} placeholder="Your name" />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-24 w-24">
+                      {previewUrl || image ? (
+                        <AvatarImage src={previewUrl ?? image} />
+                      ) : (
+                        <AvatarFallback>
+                          {watchName?.charAt(0)?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <input
+                        ref={fileInputRef}
+                        id="profile-file"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                      />
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          Choose file
+                        </Button>
+                        <span className="text-sm text-muted-foreground">
+                          {file?.name ?? "No file selected"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            )}
+          </CardContent>
+          <CardFooter>
+            <div className="flex w-full items-center justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  // reset to current values
+                  setValue("username", username || "");
+                }}
+                className="mr-3"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                onClick={() =>
+                  document
+                    .querySelector("form")
+                    ?.requestSubmit()
+                }
+                disabled={isSubmitting || saving || (!isDirty && file === null)}
+              >
+                {isSubmitting || saving ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
       </main>
 
-      <aside className="hidden lg:block w-64 ml-8 flex-shrink-0">
+      <aside className="hidden lg:block w-64 ml-8 shrink-0">
         <div className="p-4 border rounded-lg bg-muted/50">
           <h2 className="text-lg font-medium mb-2">Profile Page</h2>
           <p className="text-muted-foreground text-sm">

@@ -1,7 +1,6 @@
 import { db } from "@/db";
 import { user as userTable, usernames as usernamesTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import Image from "next/image";
 
 export default async function ProfilePage({
   params,
@@ -34,7 +33,7 @@ export default async function ProfilePage({
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-12">
+    <div className="max-w-5xl px-4 mx-auto py-12">
       <div className="flex items-center gap-4">
         <div className="h-20 w-20 rounded-full overflow-hidden bg-muted">
           {user.image ? (
