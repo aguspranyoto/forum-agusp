@@ -65,8 +65,19 @@ function Profile() {
         }
       }
 
-      // TODO: persist `name` and `image` in your user database
-      await new Promise((r) => setTimeout(r, 300));
+      // persist `name` and `image` in your user database
+      try {
+        const userId = session?.user?.id || session?.user?.email || "";
+        if (userId) {
+          await fetch("/api/profile/update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, name, image }),
+          });
+        }
+      } catch (err) {
+        console.error("Failed to persist profile changes", err);
+      }
     } finally {
       setSaving(false);
     }
@@ -81,15 +92,6 @@ function Profile() {
 
         <form onSubmit={onSubmit} className="space-y-6 max-w-xl">
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
-              {previewUrl || image ? (
-                <AvatarImage src={previewUrl ?? image} />
-              ) : (
-                <AvatarFallback>
-                  {name?.charAt(0)?.toUpperCase() || "U"}
-                </AvatarFallback>
-              )}
-            </Avatar>
             <div className="flex-1">
               <Label className="mb-1">Display Name</Label>
               <Input
@@ -101,12 +103,16 @@ function Profile() {
           </div>
 
           <div>
-            <Label className="mb-1">Profile Image URL</Label>
-            <Input
-              value={image}
-              onChange={(e) => setImage(e.target.value)}
-              disabled
-            />
+            <Label className="mb-2">Profile Image</Label>
+            <Avatar className="h-32 w-32">
+              {previewUrl || image ? (
+                <AvatarImage src={previewUrl ?? image} />
+              ) : (
+                <AvatarFallback>
+                  {name?.charAt(0)?.toUpperCase() || "U"}
+                </AvatarFallback>
+              )}
+            </Avatar>
             <div className="mt-2">
               <input
                 ref={fileInputRef}
