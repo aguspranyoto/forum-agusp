@@ -39,6 +39,7 @@ export function ThreadCard({ thread }: { thread: Thread }) {
   const { data: session } = useSession();
   const [count, setCount] = useState<number>(0);
   const [liked, setLiked] = useState<boolean>(false);
+  const [commentCount, setCommentCount] = useState<number>(0);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState("");
@@ -55,6 +56,16 @@ export function ThreadCard({ thread }: { thread: Thread }) {
         const data = await res.json();
         setCount(data.count ?? 0);
         setLiked(Boolean(data.liked));
+        // fetch comment count
+        try {
+          const cRes = await fetch(`/api/posts/${thread.id}/comments`);
+          if (cRes.ok) {
+            const cData = await cRes.json();
+            setCommentCount(Array.isArray(cData) ? cData.length : 0);
+          }
+        } catch (e) {
+          setCommentCount(0);
+        }
       }
     }
     load();
@@ -157,7 +168,7 @@ export function ThreadCard({ thread }: { thread: Thread }) {
             variant="ghost"
             onClick={() => setShowComments(!showComments)}
           >
-            Comments
+            Comments ({commentCount})
           </Button>
         </div>
       </CardContent>
