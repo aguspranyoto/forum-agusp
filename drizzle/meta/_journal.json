@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1773644738961,
+      "tag": "0000_misty_the_hunter",
+      "breakpoints": true
+    }
+  ]
+}
