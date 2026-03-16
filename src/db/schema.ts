@@ -136,3 +136,21 @@ export const imagesRelations = relations(images, ({ one }) => ({
   }),
 }));
 
+export const likes = sqliteTable('likes', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  postId: text('post_id').notNull().references(() => posts.id, { onDelete: 'cascade' }),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+});
+
+export const likesRelations = relations(likes, ({ one }) => ({
+  user: one(user, {
+    fields: [likes.userId],
+    references: [user.id],
+  }),
+  post: one(posts, {
+    fields: [likes.postId],
+    references: [posts.id],
+  }),
+}));
+
