@@ -1,4 +1,10 @@
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Thread {
@@ -12,6 +18,7 @@ interface Thread {
 }
 
 export function ThreadCard({ thread }: { thread: Thread }) {
+  console.log("Rendering ThreadCard for thread:", thread);
   return (
     <Card className="hover:border-primary/50 transition-colors">
       <CardHeader className="pb-3">
@@ -21,19 +28,22 @@ export function ThreadCard({ thread }: { thread: Thread }) {
         <div className="flex items-center gap-2 mt-2">
           <Avatar className="h-6 w-6">
             <AvatarImage src={thread.authorImage || ""} />
-            <AvatarFallback>{thread.authorName?.charAt(0).toUpperCase() || "?"}</AvatarFallback>
+            <AvatarFallback>
+              {thread.authorName?.charAt(0).toUpperCase() || "?"}
+            </AvatarFallback>
           </Avatar>
           <CardDescription>
-            {thread.authorName || "Anonymous"} • {new Date(thread.createdAt).toLocaleString(undefined, {
-              dateStyle: 'medium',
-              timeStyle: 'short',
+            {thread.authorName || "Anonymous"} •{" "}
+            {new Date(thread.createdAt).toLocaleString(undefined, {
+              dateStyle: "medium",
+              timeStyle: "short",
             })}
           </CardDescription>
         </div>
       </CardHeader>
       <CardContent>
         {/* Normally we wouldn't raw output HTML safely, but for MVP tiptap viewing: */}
-        <div 
+        <div
           className="prose dark:prose-invert max-w-none line-clamp-3 text-sm text-muted-foreground"
           dangerouslySetInnerHTML={{ __html: thread.content }}
         />

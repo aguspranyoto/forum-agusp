@@ -7,7 +7,7 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 min-h-screen bg-background max-w-5xl mx-auto px-4 py-8">
-      <main className="">
+      <main className="grow">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Discussions</h1>
@@ -33,7 +33,7 @@ export default async function Home() {
           )}
         </div>
       </main>
-      <aside className="hidden lg:block w-64 ml-8">
+      <aside className="hidden lg:block lg:flex-none w-64 ml-8">
         <div className="p-4 border rounded-lg bg-muted/50">
           <h2 className="text-lg font-medium mb-2">About</h2>
           <p className="text-muted-foreground text-sm">
