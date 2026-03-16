@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { MessageCircle, X, Minus } from "lucide-react";
 
 export function ChatWidget() {
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
@@ -66,6 +66,7 @@ export function ChatWidget() {
     }
   };
 
+  if (isPending) return null;
   if (!session?.user) return null;
 
   if (!isOpen) {

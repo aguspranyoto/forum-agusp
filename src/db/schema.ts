@@ -18,6 +18,18 @@ export const user = sqliteTable("user", {
     .notNull(),
 });
 
+export const usernames = sqliteTable("usernames", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => user.id, { onDelete: "cascade" }),
+  username: text("username").notNull().unique(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    .notNull(),
+});
+
 export const session = sqliteTable(
   "session",
   {
@@ -87,9 +99,17 @@ export const verification = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-export const userRelations = relations(user, ({ many }) => ({
+export const userRelations = relations(user, ({ many, one }) => ({
   sessions: many(session),
   accounts: many(account),
+  username: one(usernames),
+}));
+
+export const usernamesRelations = relations(usernames, ({ one }) => ({
+  user: one(user, {
+    fields: [usernames.userId],
+    references: [user.id],
+  }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

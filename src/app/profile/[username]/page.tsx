@@ -1,20 +1,26 @@
 import { db } from "@/db";
-import { user as userTable } from "@/db/schema";
+import { user as userTable, usernames as usernamesTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import Image from "next/image";
 
 export default async function ProfilePage({
   params,
 }: {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }) {
-  const { username } = params;
-  const rows = await db
-    .select()
+  const { username } = await params;
+
+  const user = await db
+    .select({
+      id: userTable.id,
+      name: userTable.name,
+      image: userTable.image,
+      username: usernamesTable.username,
+    })
     .from(userTable)
-    .where(eq(userTable.username, String(username)))
-    .limit(1);
-  const user = rows[0] ?? null;
+    .innerJoin(usernamesTable, eq(userTable.id, usernamesTable.userId))
+    .where(eq(usernamesTable.username, String(username)))
+    .get();
 
   if (!user) {
     return (

@@ -8,6 +8,13 @@
       "when": 1773644738961,
       "tag": "0000_misty_the_hunter",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1773645338885,
+      "tag": "0001_mysterious_human_fly",
+      "breakpoints": true
     }
   ]
 }
