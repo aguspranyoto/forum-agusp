@@ -75,10 +75,12 @@ export function ThreadCard({ thread }: { thread: Thread }) {
           className="prose dark:prose-invert max-w-none line-clamp-3 text-sm text-muted-foreground"
           dangerouslySetInnerHTML={{ __html: thread.content }}
         />
-        <div className="mt-4 flex items-center gap-2 cursor-pointer">
+        <div className="mt-4 flex items-center gap-2 ">
           <Button
             size="sm"
-            variant={liked ? "destructive" : "ghost"}
+            disabled={!session?.user}
+            className={"cursor-pointer"}
+            variant={liked ? "outline" : "default"}
             onClick={async () => {
               const userId = session?.user?.id;
               if (!userId) return;
