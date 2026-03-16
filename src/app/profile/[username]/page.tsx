@@ -1,3 +1,4 @@
+import SendMessageButton from "@/components/send-message-button";
 import { db } from "@/db";
 import {
   user as userTable,
@@ -82,24 +83,31 @@ export default async function ProfilePage({
 
   return (
     <div className="max-w-5xl px-4 mx-auto py-12">
-      <div className="flex items-center gap-4">
-        <div className="h-20 w-20 rounded-full overflow-hidden bg-muted">
-          {user.image ? (
-            // next/image requires a loader or allowed domains; using plain img fallback
-            <img
-              src={user.image}
-              alt={user.name || username}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full w-full text-xl">
-              {(user.name || username).charAt(0).toUpperCase()}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <div className="h-20 w-20 rounded-full overflow-hidden bg-muted">
+            {user.image ? (
+              // next/image requires a loader or allowed domains; using plain img fallback
+              <img
+                src={user.image}
+                alt={user.name || username}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full w-full text-xl">
+                {(user.name || username).charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold">{user.name || username}</h1>
+            <div className="text-sm text-muted-foreground">
+              @{user.username}
             </div>
-          )}
+          </div>
         </div>
         <div>
-          <h1 className="text-2xl font-semibold">{user.name || username}</h1>
-          <div className="text-sm text-muted-foreground">@{user.username}</div>
+          <SendMessageButton userId={user.id} userName={user.name} />
         </div>
       </div>
 

@@ -5,7 +5,7 @@ import { useSession } from "@/lib/auth-client";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { MessageCircle, X, Minus } from "lucide-react";
+import { X, Minus } from "lucide-react";
 
 export function ChatWidget() {
   const { data: session, isPending } = useSession();
@@ -13,14 +13,33 @@ export function ChatWidget() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [text, setText] = useState("");
+  const [receiverId, setReceiverId] = useState<string | null>(null);
+  const [receiverName, setReceiverName] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Poll for messages
+  // Listen for open-chat events to start a 1:1 conversation
   useEffect(() => {
+    const handler = (e: any) => {
+      const { receiverId: rid, receiverName: rname } = e.detail || {};
+      setReceiverId(rid ?? null);
+      setReceiverName(rname ?? null);
+      setIsOpen(true);
+      setIsMinimized(false);
+    };
+    window.addEventListener("open-chat", handler as EventListener);
+    return () =>
+      window.removeEventListener("open-chat", handler as EventListener);
+  }, []);
+
+  // Poll for messages for the active conversation
+  useEffect(() => {
+    if (!receiverId || !session?.user) return;
     let mounted = true;
     async function fetchMessages() {
       try {
-        const res = await fetch("/api/chat");
+        const res = await fetch(
+          `/api/chat?userId=${encodeURIComponent(session.user.id)}&receiverId=${encodeURIComponent(receiverId)}`,
+        );
         if (res.ok) {
           const data = await res.json();
           if (mounted) setMessages(data);
@@ -32,13 +51,13 @@ export function ChatWidget() {
 
     if (isOpen && !isMinimized) {
       fetchMessages();
-      const interval = setInterval(fetchMessages, 2000); // 2 second polling for live feel
+      const interval = setInterval(fetchMessages, 2000);
       return () => {
         mounted = false;
         clearInterval(interval);
       };
     }
-  }, [isOpen, isMinimized]);
+  }, [isOpen, isMinimized, receiverId, session?.user]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -54,7 +73,11 @@ export function ChatWidget() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: session.user.id, content: text.trim() }),
+        body: JSON.stringify({
+          userId: session.user.id,
+          content: text.trim(),
+          receiverId,
+        }),
       });
       if (res.ok) {
         const newMsg = await res.json();
@@ -69,19 +92,7 @@ export function ChatWidget() {
   if (isPending) return null;
   if (!session?.user) return null;
 
-  if (!isOpen) {
-    return (
-      <Button
-        className="fixed bottom-4 right-4 rounded-full h-14 w-14 shadow-xl z-50 cursor-pointer"
-        onClick={() => {
-          setIsOpen(true);
-          setIsMinimized(false);
-        }}
-      >
-        <MessageCircle className="h-6 w-6" />
-      </Button>
-    );
-  }
+  if (!isOpen) return null;
 
   return (
     <div
@@ -101,7 +112,9 @@ export function ChatWidget() {
               {session.user.name?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="font-semibold text-sm">Global Chat Room</span>
+          <span className="font-semibold text-sm">
+            {receiverName ?? "Direct Message"}
+          </span>
         </div>
         <div className="flex items-center">
           <Button

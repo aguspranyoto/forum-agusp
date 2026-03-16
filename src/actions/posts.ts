@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { posts, user } from "@/db/schema";
+import { posts, user, usernames } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -52,9 +52,11 @@ export async function getThreads(page: number = 1, limit: number = 10) {
       authorId: posts.authorId,
       authorName: user.name,
       authorImage: user.image,
+      authorUsername: usernames.username,
     })
     .from(posts)
     .leftJoin(user, eq(posts.authorId, user.id))
+    .leftJoin(usernames, eq(user.id, usernames.userId))
     .orderBy(desc(posts.createdAt))
     .limit(limit)
     .offset(offset);

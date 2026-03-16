@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
+import Link from "next/link";
 
 interface Thread {
   id: string;
@@ -22,6 +23,7 @@ interface Thread {
   authorId: string;
   authorName: string | null;
   authorImage: string | null;
+  authorUsername: string | null;
 }
 
 interface Comment {
@@ -32,7 +34,7 @@ interface Comment {
     id: string;
     name: string | null;
     image: string | null;
-  }
+  };
 }
 
 export function ThreadCard({ thread }: { thread: Thread }) {
@@ -96,11 +98,14 @@ export function ThreadCard({ thread }: { thread: Thread }) {
   const handlePostComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim() || !session?.user) return;
-    
+
     const res = await fetch(`/api/posts/${thread.id}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: session.user.id, content: commentText.trim() }),
+      body: JSON.stringify({
+        userId: session.user.id,
+        content: commentText.trim(),
+      }),
     });
 
     if (res.ok) {
@@ -116,7 +121,10 @@ export function ThreadCard({ thread }: { thread: Thread }) {
         <div className="flex justify-between items-start gap-4">
           <CardTitle className="text-xl line-clamp-2">{thread.title}</CardTitle>
         </div>
-        <div className="flex items-center gap-2 mt-2">
+        <Link
+          href={`/profile/${thread.authorUsername}`}
+          className="flex items-center gap-2 mt-2 cursor-pointer"
+        >
           <Avatar className="h-6 w-6">
             <AvatarImage src={thread.authorImage || ""} />
             <AvatarFallback>
@@ -124,7 +132,7 @@ export function ThreadCard({ thread }: { thread: Thread }) {
             </AvatarFallback>
           </Avatar>
           <CardDescription>
-            {thread.authorName || "Anonymous"} {" "}
+            {thread.authorName || "Anonymous"}{" "}
             <span suppressHydrationWarning>
               {new Date(thread.createdAt).toLocaleString(undefined, {
                 dateStyle: "medium",
@@ -132,7 +140,7 @@ export function ThreadCard({ thread }: { thread: Thread }) {
               })}
             </span>
           </CardDescription>
-        </div>
+        </Link>
       </CardHeader>
       <CardContent>
         <div
@@ -183,28 +191,43 @@ export function ThreadCard({ thread }: { thread: Thread }) {
                 onChange={(e) => setCommentText(e.target.value)}
                 className="flex-1"
               />
-              <Button type="submit" disabled={!commentText.trim()}>Post</Button>
+              <Button type="submit" disabled={!commentText.trim()}>
+                Post
+              </Button>
             </form>
           ) : (
-             <div className="text-sm text-muted-foreground">Sign in to comment.</div>
+            <div className="text-sm text-muted-foreground">
+              Sign in to comment.
+            </div>
           )}
 
           <div className="flex flex-col gap-4 w-full mt-2">
             {isLoadingComments ? (
-              <div className="text-sm text-center text-muted-foreground p-2">Loading comments...</div>
+              <div className="text-sm text-center text-muted-foreground p-2">
+                Loading comments...
+              </div>
             ) : comments.length === 0 ? (
-              <div className="text-sm text-center text-muted-foreground p-2">No comments yet.</div>
+              <div className="text-sm text-center text-muted-foreground p-2">
+                No comments yet.
+              </div>
             ) : (
               comments.map((comment) => (
                 <div key={comment.id} className="flex items-start gap-3">
                   <Avatar className="h-8 w-8 mt-0.5">
                     <AvatarImage src={comment.user.image || ""} />
-                    <AvatarFallback>{comment.user.name?.charAt(0).toUpperCase() || "?"}</AvatarFallback>
+                    <AvatarFallback>
+                      {comment.user.name?.charAt(0).toUpperCase() || "?"}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 bg-muted/50 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium">{comment.user.name || "Anonymous"}</span>
-                      <span className="text-xs text-muted-foreground" suppressHydrationWarning>
+                      <span className="text-sm font-medium">
+                        {comment.user.name || "Anonymous"}
+                      </span>
+                      <span
+                        className="text-xs text-muted-foreground"
+                        suppressHydrationWarning
+                      >
                         {new Date(comment.createdAt).toLocaleString(undefined, {
                           dateStyle: "short",
                           timeStyle: "short",
