@@ -38,7 +38,7 @@ export function ChatWidget() {
     async function fetchMessages() {
       try {
         const res = await fetch(
-          `/api/chat?userId=${encodeURIComponent(session.user.id)}&receiverId=${encodeURIComponent(receiverId)}`,
+          `/api/chat?userId=${encodeURIComponent(session?.user?.id || "")}&receiverId=${encodeURIComponent(receiverId || "")}`,
         );
         if (res.ok) {
           const data = await res.json();
@@ -74,7 +74,7 @@ export function ChatWidget() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: session.user.id,
+          userId: session?.user?.id,
           content: text.trim(),
           receiverId,
         }),
@@ -107,9 +107,9 @@ export function ChatWidget() {
       >
         <div className="flex items-center gap-2">
           <Avatar className="h-6 w-6 border border-primary-foreground/20">
-            <AvatarImage src={session.user.image || ""} />
+            <AvatarImage src={session?.user?.image || ""} />
             <AvatarFallback className="text-foreground">
-              {session.user.name?.charAt(0).toUpperCase()}
+              {session?.user?.name?.charAt(0)?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <span className="font-semibold text-sm">
@@ -152,7 +152,7 @@ export function ChatWidget() {
               </p>
             ) : (
               messages.map((msg) => {
-                const isMe = msg.sender?.id === session.user.id;
+                const isMe = msg.sender?.id === session?.user?.id;
                 return (
                   <div
                     key={msg.id}
